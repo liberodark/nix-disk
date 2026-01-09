@@ -36,8 +36,10 @@ pub fn parse_nix_filesystems(nix_config: &str) -> Result<HashMap<PathBuf, Partit
         let partition_path = if partition_uuid_path.exists() {
             fs::read_link(&partition_uuid_path)
                 .map(|link| {
-                    let parent = partition_uuid_path.parent().unwrap_or(Path::new("/dev/disk/by-uuid"));
-                    parent.join(&link).canonicalize().unwrap_or_else(|_| link)
+                    let parent = partition_uuid_path
+                        .parent()
+                        .unwrap_or(Path::new("/dev/disk/by-uuid"));
+                    parent.join(&link).canonicalize().unwrap_or(link)
                 })
                 .unwrap_or_else(|_| partition_uuid_path.clone())
         } else {
@@ -72,8 +74,8 @@ pub fn get_disks(nix_config: Option<&str>) -> Result<Vec<Disk>> {
     };
 
     // Read /proc/partitions
-    let proc_partitions = fs::read_to_string("/proc/partitions")
-        .context("Failed to read /proc/partitions")?;
+    let proc_partitions =
+        fs::read_to_string("/proc/partitions").context("Failed to read /proc/partitions")?;
 
     let mut disks: Vec<Disk> = Vec::new();
 
@@ -93,7 +95,7 @@ pub fn get_disks(nix_config: Option<&str>) -> Result<Vec<Disk>> {
 
         // Get disk size using lsblk
         let size_output = Command::new("lsblk")
-            .args(&["-b", "--output", "SIZE", "-n", "-d"])
+            .args(["-b", "--output", "SIZE", "-n", "-d"])
             .arg(&disk_path)
             .output()
             .context("Failed to run lsblk")?;
@@ -172,18 +174,18 @@ fn parse_partition(
 
     // Extract UUID
     let uuid_regex = Regex::new(r#"UUID="([^"]+)""#)?;
-    if let Some(uuid_cap) = uuid_regex.captures(&blkid_str) {
-        if let Some(uuid) = uuid_cap.get(1) {
-            let uuid_path = PathBuf::from(format!("/dev/disk/by-uuid/{}", uuid.as_str()));
-            return Ok(Some(Partition::new(
-                partition_path.to_path_buf(),
-                uuid_path,
-                Vec::new(),
-                fs_type,
-                size,
-                label,
-            )));
-        }
+    if let Some(uuid_cap) = uuid_regex.captures(&blkid_str)
+        && let Some(uuid) = uuid_cap.get(1)
+    {
+        let uuid_path = PathBuf::from(format!("/dev/disk/by-uuid/{}", uuid.as_str()));
+        return Ok(Some(Partition::new(
+            partition_path.to_path_buf(),
+            uuid_path,
+            Vec::new(),
+            fs_type,
+            size,
+            label,
+        )));
     }
 
     // No UUID found, skip this partition

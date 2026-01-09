@@ -11,7 +11,8 @@ pub struct MissingPartitionsDialog {
 
 impl MissingPartitionsDialog {
     pub fn new(missing: &[Partition], disks: Rc<RefCell<Vec<Disk>>>) -> Self {
-        let mut message = String::from("Les partitions suivantes sont configurées mais n'existent plus :\n\n");
+        let mut message =
+            String::from("Les partitions suivantes sont configurées mais n'existent plus :\n\n");
 
         for partition in missing {
             message.push_str(&format!(
@@ -50,17 +51,16 @@ impl MissingPartitionsDialog {
         let mut disks_mut = disks.borrow_mut();
 
         for disk in disks_mut.iter_mut() {
-            disk.partitions.retain(|p| {
-                !missing.iter().any(|m| m.path == p.path)
-            });
+            disk.partitions
+                .retain(|p| !missing.iter().any(|m| m.path == p.path));
         }
     }
 
     pub fn present(&self, parent: Option<&impl IsA<gtk4::Widget>>) {
-        if let Some(p) = parent {
-            if let Some(window) = p.dynamic_cast_ref::<gtk4::Window>() {
-                self.dialog.set_transient_for(Some(window));
-            }
+        if let Some(p) = parent
+            && let Some(window) = p.dynamic_cast_ref::<gtk4::Window>()
+        {
+            self.dialog.set_transient_for(Some(window));
         }
         self.dialog.present();
     }

@@ -96,14 +96,10 @@ impl FormatDiskDialog {
         button_box.set_halign(gtk4::Align::Center);
         button_box.set_margin_top(24);
 
-        let cancel_button = Button::builder()
-            .label("Annuler")
-            .build();
+        let cancel_button = Button::builder().label("Annuler").build();
         cancel_button.add_css_class("pill");
 
-        let format_button = Button::builder()
-            .label("Formater le disque")
-            .build();
+        let format_button = Button::builder().label("Formater le disque").build();
         format_button.add_css_class("pill");
         format_button.add_css_class("destructive-action");
 
@@ -143,8 +139,18 @@ impl FormatDiskDialog {
                 return;
             }
 
-            eprintln!("💾 Formatage du disque {} avec le nom de volume '{}'...", disk_path.display(), volume_name);
-            Self::format_disk(&disk_path, &volume_name, &disks_clone, &window_clone, on_complete.clone());
+            eprintln!(
+                "💾 Formatage du disque {} avec le nom de volume '{}'...",
+                disk_path.display(),
+                volume_name
+            );
+            Self::format_disk(
+                &disk_path,
+                &volume_name,
+                &disks_clone,
+                &window_clone,
+                on_complete.clone(),
+            );
             window_clone.close();
         });
 
@@ -157,8 +163,13 @@ impl FormatDiskDialog {
         Self { window }
     }
 
-    fn format_disk<F>(disk_path: &std::path::PathBuf, volume_name: &str, disks: &Rc<RefCell<Vec<Disk>>>, parent_window: &adw::Window, on_complete: Rc<F>)
-    where
+    fn format_disk<F>(
+        disk_path: &std::path::Path,
+        volume_name: &str,
+        disks: &Rc<RefCell<Vec<Disk>>>,
+        parent_window: &adw::Window,
+        on_complete: Rc<F>,
+    ) where
         F: Fn() + 'static,
     {
         let disk_str = disk_path.to_string_lossy().to_string();
@@ -174,7 +185,8 @@ impl FormatDiskDialog {
 
         // Get absolute paths to tools from environment (set by Nix wrapper)
         let parted_bin = std::env::var("PARTED_BIN").unwrap_or_else(|_| "parted".to_string());
-        let mkfs_ext4_bin = std::env::var("MKFS_EXT4_BIN").unwrap_or_else(|_| "mkfs.ext4".to_string());
+        let mkfs_ext4_bin =
+            std::env::var("MKFS_EXT4_BIN").unwrap_or_else(|_| "mkfs.ext4".to_string());
 
         // Get current user info BEFORE launching terminal
         // When running with pkexec, PKEXEC_UID contains the real user's UID
@@ -212,7 +224,10 @@ impl FormatDiskDialog {
             .and_then(|s| s.trim().to_string().parse::<u32>().ok())
             .unwrap_or(100);
 
-        eprintln!("📍 Utilisateur détecté: {} (uid={}, gid={})", current_user, uid, gid);
+        eprintln!(
+            "📍 Utilisateur détecté: {} (uid={}, gid={})",
+            current_user, uid, gid
+        );
 
         // Create the format script with sudo integrated
         let format_script = format!(
@@ -298,7 +313,21 @@ touch /tmp/nix_disk_manager_format_{}.done
 echo "Appuyez sur Entrée ou fermez cette fenêtre..."
 read -t 300 || true
 "#,
-            disk_str, parted_bin, disk_str, parted_bin, disk_str, disk_str, disk_str, volume_name, mkfs_ext4_bin, volume_name, timestamp, current_user, uid, gid, timestamp
+            disk_str,
+            parted_bin,
+            disk_str,
+            parted_bin,
+            disk_str,
+            disk_str,
+            disk_str,
+            volume_name,
+            mkfs_ext4_bin,
+            volume_name,
+            timestamp,
+            current_user,
+            uid,
+            gid,
+            timestamp
         );
 
         // Write script to temp file with timestamp to avoid conflicts
@@ -324,7 +353,7 @@ read -t 300 || true
         // On NixOS, we need to use the terminal approach as pkexec might not work well
         eprintln!("💾 Ouverture d'un terminal pour le formatage...");
 
-        let script_cmd = format!("bash {}", script_path);
+        let _script_cmd = format!("bash {}", script_path);
 
         // Try different terminals
         let terminals: Vec<(&str, Vec<&str>)> = vec![
@@ -352,13 +381,16 @@ read -t 300 || true
         // (Dialogs always go behind the terminal window anyway)
         if !terminal_opened {
             eprintln!("❌ Aucun terminal trouvé");
-            Self::show_error_dialog(parent_window, "Impossible d'ouvrir un terminal. Installez gnome-console (kgx) ou gnome-terminal.");
+            Self::show_error_dialog(
+                parent_window,
+                "Impossible d'ouvrir un terminal. Installez gnome-console (kgx) ou gnome-terminal.",
+            );
             // Clean up if we couldn't open a terminal
             let _ = std::fs::remove_file(&script_path);
         } else {
             // Start watching for completion
             use gtk4::glib;
-            let disks_watch = disks.clone();
+            let _disks_watch = disks.clone();
             let status_file_watch = status_file.clone();
             let script_path_watch = script_path.clone();
             let check_count = Rc::new(RefCell::new(0u32));
@@ -395,11 +427,15 @@ read -t 300 || true
         }
     }
 
+    #[allow(dead_code)]
     fn show_success_dialog(parent: &adw::Window, disk: &str) {
         let success_dialog = adw::MessageDialog::new(
             Some(parent),
             Some("Formatage réussi"),
-            Some(&format!("Le disque {} a été formaté avec succès en ext4.\n\nVous pouvez maintenant le monter.", disk)),
+            Some(&format!(
+                "Le disque {} a été formaté avec succès en ext4.\n\nVous pouvez maintenant le monter.",
+                disk
+            )),
         );
         success_dialog.add_response("ok", "OK");
         success_dialog.set_default_response(Some("ok"));
@@ -420,10 +456,10 @@ read -t 300 || true
     }
 
     pub fn present(&self, parent: Option<&impl IsA<gtk4::Widget>>) {
-        if let Some(p) = parent {
-            if let Some(window) = p.dynamic_cast_ref::<gtk4::Window>() {
-                self.window.set_transient_for(Some(window));
-            }
+        if let Some(p) = parent
+            && let Some(window) = p.dynamic_cast_ref::<gtk4::Window>()
+        {
+            self.window.set_transient_for(Some(window));
         }
         self.window.present();
     }

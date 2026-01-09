@@ -100,7 +100,10 @@ pub fn get_nix_disks_config(nix_config: &str, disks: &[Disk]) -> Result<String> 
             for mount_point in &partition.mount_points {
                 // Skip if this is a critical mount point (already preserved)
                 if is_critical_mount_point(mount_point) {
-                    eprintln!("🔧     → Ignorée (point de montage critique déjà préservé): {}", mount_point);
+                    eprintln!(
+                        "🔧     → Ignorée (point de montage critique déjà préservé): {}",
+                        mount_point
+                    );
                     continue;
                 }
 
@@ -126,7 +129,10 @@ pub fn get_nix_disks_config(nix_config: &str, disks: &[Disk]) -> Result<String> 
 
     config.push_str("\n\n}");
 
-    eprintln!("🔧 Total d'entrées fileSystems générées: {}", generated_count);
+    eprintln!(
+        "🔧 Total d'entrées fileSystems générées: {}",
+        generated_count
+    );
     eprintln!("🔧 Taille de la config générée: {} octets", config.len());
 
     Ok(config)
@@ -135,12 +141,7 @@ pub fn get_nix_disks_config(nix_config: &str, disks: &[Disk]) -> Result<String> 
 /// Get filesystem-specific mount options
 fn get_filesystem_options(fs_type: &str, mount_point: &str) -> String {
     let mut options = match fs_type {
-        "btrfs" => vec![
-            "defaults",
-            "nofail",
-            "x-gvfs-show",
-            "compress=zstd",
-        ],
+        "btrfs" => vec!["defaults", "nofail", "x-gvfs-show", "compress=zstd"],
         "ntfs" | "ntfs3" => vec![
             "defaults",
             "nofail",
@@ -157,7 +158,14 @@ fn get_filesystem_options(fs_type: &str, mount_point: &str) -> String {
         options.retain(|&opt| opt != "x-gvfs-show");
     }
 
-    format!("[ {} ]", options.iter().map(|s| format!("\"{}\"", s)).collect::<Vec<_>>().join(" "))
+    format!(
+        "[ {} ]",
+        options
+            .iter()
+            .map(|s| format!("\"{}\"", s))
+            .collect::<Vec<_>>()
+            .join(" ")
+    )
 }
 
 #[cfg(test)]

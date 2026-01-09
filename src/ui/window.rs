@@ -4,7 +4,7 @@ use crate::ui::widgets::DisksWidget;
 use crate::utils::get_nix_disks_config;
 use gettextrs::gettext;
 use gtk4::prelude::*;
-use gtk4::{gio, glib, Button};
+use gtk4::{gio, glib};
 use libadwaita as adw;
 use libadwaita::prelude::*;
 use std::cell::RefCell;
@@ -13,6 +13,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::rc::Rc;
 
+#[allow(dead_code)]
 pub struct NixDiskManagerWindow {
     window: adw::ApplicationWindow,
     disks: Rc<RefCell<Vec<Disk>>>,
@@ -36,7 +37,7 @@ impl NixDiskManagerWindow {
     ) -> Rc<Self> {
         let window = adw::ApplicationWindow::builder()
             .application(app)
-            .title(&format!("Nix-disk v{}", env!("CARGO_PKG_VERSION")))
+            .title(format!("Nix-disk v{}", env!("CARGO_PKG_VERSION")))
             .default_width(800)
             .default_height(600)
             .icon_name("nix-disk")
@@ -53,7 +54,8 @@ impl NixDiskManagerWindow {
         let rebuild_banner = adw::Banner::new(&gettext("Rebuilding NixOS configuration..."));
         rebuild_banner.set_revealed(false);
 
-        let rebuild_error_banner = adw::Banner::new(&gettext("Failed to rebuild NixOS configuration"));
+        let rebuild_error_banner =
+            adw::Banner::new(&gettext("Failed to rebuild NixOS configuration"));
         rebuild_error_banner.set_revealed(false);
         rebuild_error_banner.add_css_class("error");
 
@@ -86,7 +88,8 @@ impl NixDiskManagerWindow {
         content_box.append(&top_spacer);
 
         // Create disks widget with hardware config
-        let disks_widget = DisksWidget::new_with_config(disks.clone(), Some(hardware_config.clone()));
+        let disks_widget =
+            DisksWidget::new_with_config(disks.clone(), Some(hardware_config.clone()));
 
         // Set up save callback for the disks widget
         let disks_for_save = disks.clone();
@@ -127,17 +130,19 @@ impl NixDiskManagerWindow {
             // Each card is 300px wide + 20px spacing
             // Formula: (num_disks * 300) + ((num_disks - 1) * 20) + margins (100px)
             let calculated_width = (num_disks as i32 * 320) + 80;
-            let window_width = calculated_width.max(800).min(1920); // Min 800px, max 1920px
+            let window_width = calculated_width.clamp(800, 1920); // Min 800px, max 1920px
 
             // Calculate height based on max card height
             // Header bar (~50px) + banners + top/bottom spacers + margins + save button (~80px)
             let max_card_height = disks_widget.get_max_card_height();
             let calculated_height = max_card_height + 200; // Add space for UI elements
-            let window_height = calculated_height.max(600).min(1200); // Min 600px, max 1200px
+            let window_height = calculated_height.clamp(600, 1200); // Min 600px, max 1200px
 
             window.set_default_size(window_width, window_height);
-            eprintln!("📐 Ajustement de la fenêtre pour {} disque(s): {}px de large × {}px de haut",
-                     num_disks, window_width, window_height);
+            eprintln!(
+                "📐 Ajustement de la fenêtre pour {} disque(s): {}px de large × {}px de haut",
+                num_disks, window_width, window_height
+            );
         }
 
         // Add bottom spacer to center content vertically
@@ -184,7 +189,6 @@ impl NixDiskManagerWindow {
 
         window_rc
     }
-
 
     pub fn show_missing_partitions_dialog(&self, missing: &[Partition]) {
         let dialog = MissingPartitionsDialog::new(missing, self.disks.clone());
@@ -249,8 +253,10 @@ impl NixDiskManagerWindow {
                             .duration_since(std::time::UNIX_EPOCH)
                             .unwrap()
                             .as_secs();
-                        let wrapper_path = format!("/tmp/nix_disk_manager_rebuild_{}.sh", timestamp);
-                        let status_file = format!("/tmp/nix_disk_manager_rebuild_{}.done", timestamp);
+                        let wrapper_path =
+                            format!("/tmp/nix_disk_manager_rebuild_{}.sh", timestamp);
+                        let status_file =
+                            format!("/tmp/nix_disk_manager_rebuild_{}.done", timestamp);
 
                         let script_content = format!(
                             r#"#!/usr/bin/env bash
@@ -291,7 +297,8 @@ read -t 300 || true
                             return (false, status_file.clone(), wrapper_path.clone());
                         }
 
-                        if let Err(e) = Command::new("chmod").arg("+x").arg(&wrapper_path).status() {
+                        if let Err(e) = Command::new("chmod").arg("+x").arg(&wrapper_path).status()
+                        {
                             eprintln!("❌ Erreur chmod: {}", e);
                             let _ = std::fs::remove_file(&wrapper_path);
                             return (false, status_file.clone(), wrapper_path.clone());
@@ -331,7 +338,7 @@ read -t 300 || true
                     } else {
                         // Start watching for completion
                         let rebuild_banner_watch = rebuild_banner.clone();
-                        let rebuild_error_banner_watch = rebuild_error_banner.clone();
+                        let _rebuild_error_banner_watch = rebuild_error_banner.clone();
                         let disks_watch = disks_for_reload.clone();
                         let hardware_config_watch = hardware_config_for_reload.clone();
                         let on_rebuild_complete_watch = on_rebuild_complete.clone();
@@ -347,7 +354,10 @@ read -t 300 || true
                                 eprintln!("✅ Rebuild terminé détecté!");
 
                                 // Reload hardware config from disk (it was updated by the rebuild)
-                                eprintln!("📄 Rechargement de la config depuis: {}", config_file_watch.display());
+                                eprintln!(
+                                    "📄 Rechargement de la config depuis: {}",
+                                    config_file_watch.display()
+                                );
                                 let updated_config = std::fs::read_to_string(&config_file_watch)
                                     .unwrap_or_else(|e| {
                                         eprintln!("❌ Erreur lecture config: {}", e);
@@ -401,6 +411,7 @@ read -t 300 || true
         }
     }
 
+    #[allow(dead_code)]
     pub fn save_config(&self) {
         let disks_widget_clone = self.disks_widget.clone();
         let refresh_callback = Rc::new(move || {
@@ -426,6 +437,7 @@ read -t 300 || true
         &self.window
     }
 
+    #[allow(dead_code)]
     pub fn refresh_disks_widget(&self) {
         self.disks_widget.refresh();
     }

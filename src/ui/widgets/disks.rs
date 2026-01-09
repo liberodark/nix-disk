@@ -11,7 +11,9 @@ const CRITICAL_MOUNT_POINTS: &[&str] = &["/", "/boot", "/boot/efi", "/nix", "/ni
 
 /// Check if a partition has critical mount points
 fn has_critical_mount_point(mount_points: &[String]) -> bool {
-    mount_points.iter().any(|mp| CRITICAL_MOUNT_POINTS.contains(&mp.as_str()))
+    mount_points
+        .iter()
+        .any(|mp| CRITICAL_MOUNT_POINTS.contains(&mp.as_str()))
 }
 
 /// Check if a partition should be filtered out (critical mount points or swap)
@@ -22,10 +24,10 @@ fn should_filter_partition(partition: &crate::models::Partition) -> bool {
     }
 
     // Filter out swap partitions
-    if let Some(ref fs_type) = partition.fs_type {
-        if fs_type == "swap" {
-            return true;
-        }
+    if let Some(ref fs_type) = partition.fs_type
+        && fs_type == "swap"
+    {
+        return true;
     }
 
     false
@@ -35,6 +37,7 @@ pub struct DisksWidget {
     container: gtk4::Box,
     disks: Rc<RefCell<Vec<Disk>>>,
     hardware_config: Option<Rc<RefCell<String>>>,
+    #[allow(clippy::type_complexity)]
     on_save_callback: Rc<RefCell<Option<Rc<dyn Fn()>>>>,
 }
 
@@ -50,11 +53,15 @@ impl Clone for DisksWidget {
 }
 
 impl DisksWidget {
+    #[allow(dead_code)]
     pub fn new(disks: Rc<RefCell<Vec<Disk>>>) -> Self {
         Self::new_with_config(disks, None)
     }
 
-    pub fn new_with_config(disks: Rc<RefCell<Vec<Disk>>>, hardware_config: Option<Rc<RefCell<String>>>) -> Self {
+    pub fn new_with_config(
+        disks: Rc<RefCell<Vec<Disk>>>,
+        hardware_config: Option<Rc<RefCell<String>>>,
+    ) -> Self {
         let container = gtk4::Box::new(Orientation::Vertical, 20);
         container.set_vexpand(true);
         container.set_valign(gtk4::Align::Center);
@@ -100,13 +107,15 @@ impl DisksWidget {
                 // Show disk if:
                 // 1. It has at least one partition that is NOT critical (/, /boot, etc.), OR
                 // 2. It has no partitions at all (virgin disk)
-                disk.partitions.is_empty() ||
-                disk.partitions.iter().any(|p| !should_filter_partition(p))
+                disk.partitions.is_empty()
+                    || disk.partitions.iter().any(|p| !should_filter_partition(p))
             })
             .collect();
 
         if disks_to_show.is_empty() {
-            let label = Label::new(Some("Aucun disque gérable disponible\n(seuls les disques système sont présents)"));
+            let label = Label::new(Some(
+                "Aucun disque gérable disponible\n(seuls les disques système sont présents)",
+            ));
             label.add_css_class("title-2");
             label.set_justify(gtk4::Justification::Center);
             self.container.append(&label);
@@ -130,7 +139,7 @@ impl DisksWidget {
         // Card container
         let card = gtk4::Box::new(Orientation::Vertical, 20);
         card.add_css_class("card");
-        card.set_width_request(300);  // Fixed width for all cards
+        card.set_width_request(300); // Fixed width for all cards
         // Height will be determined dynamically based on content
 
         // Disk icon
@@ -141,11 +150,7 @@ impl DisksWidget {
 
         // Disk label with name and size
         let size_gb = disk.size / 1_000_000_000;
-        let disk_label = Label::new(Some(&format!(
-            "{} ({}G)",
-            disk.path.display(),
-            size_gb
-        )));
+        let disk_label = Label::new(Some(&format!("{} ({}G)", disk.path.display(), size_gb)));
         disk_label.add_css_class("heading");
 
         card.append(&icon);
@@ -159,7 +164,8 @@ impl DisksWidget {
             card.append(&status_label);
         } else {
             // Show non-critical partitions with their status
-            let non_critical_partitions: Vec<_> = disk.partitions
+            let non_critical_partitions: Vec<_> = disk
+                .partitions
                 .iter()
                 .filter(|p| !should_filter_partition(p))
                 .collect();
@@ -174,7 +180,9 @@ impl DisksWidget {
                     let part_row = gtk4::Box::new(Orientation::Vertical, 2);
 
                     // Partition name and filesystem
-                    let part_name = partition.path.file_name()
+                    let part_name = partition
+                        .path
+                        .file_name()
                         .and_then(|n| n.to_str())
                         .unwrap_or("unknown");
                     let fs_type = partition.fs_type.as_deref().unwrap_or("unknown");
@@ -188,7 +196,10 @@ impl DisksWidget {
 
                     // Show mount status
                     if !partition.mount_points.is_empty() {
-                        let mount_status = Label::new(Some(&format!("⚠️  Déjà montée: {}", partition.mount_points.join(", "))));
+                        let mount_status = Label::new(Some(&format!(
+                            "⚠️  Déjà montée: {}",
+                            partition.mount_points.join(", ")
+                        )));
                         mount_status.add_css_class("caption");
                         mount_status.add_css_class("warning");
                         mount_status.set_halign(gtk4::Align::Start);
@@ -273,8 +284,10 @@ impl DisksWidget {
 
                         // Reload disks from system with hardware config
                         use crate::utils::get_disks;
-                        let config_ref = hardware_config_for_refresh.as_ref().map(|c| c.borrow().clone());
-                        let config_str = config_ref.as_ref().map(|s| s.as_str());
+                        let config_ref = hardware_config_for_refresh
+                            .as_ref()
+                            .map(|c| c.borrow().clone());
+                        let config_str = config_ref.as_deref();
 
                         if let Ok(new_disks) = get_disks(config_str) {
                             *disks_refresh.borrow_mut() = new_disks;
@@ -286,7 +299,10 @@ impl DisksWidget {
                         }
 
                         // Recreate the widget to repopulate
-                        let temp_widget = Self::new_with_config(disks_refresh.clone(), hardware_config_for_refresh.clone());
+                        let temp_widget = Self::new_with_config(
+                            disks_refresh.clone(),
+                            hardware_config_for_refresh.clone(),
+                        );
 
                         // Reapply the save callback to the new widget
                         if let Some(callback) = on_save_callback_for_refresh.borrow().as_ref() {
@@ -300,7 +316,8 @@ impl DisksWidget {
                         }
                     };
 
-                    let dialog = FormatDiskDialog::new(&disk_clone, disks_rc.clone(), refresh_callback);
+                    let dialog =
+                        FormatDiskDialog::new(&disk_clone, disks_rc.clone(), refresh_callback);
                     dialog.present(Some(&window));
                 } else {
                     // Show manage dialog
@@ -322,7 +339,10 @@ impl DisksWidget {
 
     pub fn refresh(&self) {
         eprintln!("🔄 Rafraîchissement du widget des disques");
-        eprintln!("📊 Nombre de disques actuels: {}", self.disks.borrow().len());
+        eprintln!(
+            "📊 Nombre de disques actuels: {}",
+            self.disks.borrow().len()
+        );
 
         self.populate();
 
@@ -355,8 +375,8 @@ impl DisksWidget {
         disks
             .iter()
             .filter(|disk| {
-                disk.partitions.is_empty() ||
-                disk.partitions.iter().any(|p| !should_filter_partition(p))
+                disk.partitions.is_empty()
+                    || disk.partitions.iter().any(|p| !should_filter_partition(p))
             })
             .count()
     }
@@ -372,11 +392,12 @@ impl DisksWidget {
         let max_partitions_height = disks
             .iter()
             .filter(|disk| {
-                disk.partitions.is_empty() ||
-                disk.partitions.iter().any(|p| !should_filter_partition(p))
+                disk.partitions.is_empty()
+                    || disk.partitions.iter().any(|p| !should_filter_partition(p))
             })
             .map(|disk| {
-                let non_critical_count = disk.partitions
+                let non_critical_count = disk
+                    .partitions
                     .iter()
                     .filter(|p| !should_filter_partition(p))
                     .count();

@@ -11,7 +11,9 @@ impl WelcomeDialog {
         let dialog = adw::MessageDialog::new(
             None::<&gtk4::Window>,
             Some("Bienvenue dans Nix-disk"),
-            Some("Gérez vos points de montage de disques facilement.\n\nCette application vous aidera à configurer les montages de systèmes de fichiers dans votre configuration matérielle NixOS."),
+            Some(
+                "Gérez vos points de montage de disques facilement.\n\nCette application vous aidera à configurer les montages de systèmes de fichiers dans votre configuration matérielle NixOS.",
+            ),
         );
 
         dialog.add_response("start", "Commencer");
@@ -23,10 +25,10 @@ impl WelcomeDialog {
     }
 
     pub fn present(&self, parent: Option<&impl IsA<gtk4::Widget>>) {
-        if let Some(p) = parent {
-            if let Some(window) = p.dynamic_cast_ref::<gtk4::Window>() {
-                self.dialog.set_transient_for(Some(window));
-            }
+        if let Some(p) = parent
+            && let Some(window) = p.dynamic_cast_ref::<gtk4::Window>()
+        {
+            self.dialog.set_transient_for(Some(window));
         }
         self.dialog.present();
     }

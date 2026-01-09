@@ -1,8 +1,8 @@
 use crate::models::Disk;
 use crate::ui::window::NixDiskManagerWindow;
 use crate::utils::{find_missing_partitions, get_disks, parse_nix_filesystems};
+use gtk4::glib;
 use gtk4::prelude::*;
-use gtk4::{glib, gio};
 use libadwaita as adw;
 use std::cell::RefCell;
 use std::fs;

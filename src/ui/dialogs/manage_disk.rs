@@ -12,7 +12,9 @@ const CRITICAL_MOUNT_POINTS: &[&str] = &["/", "/boot", "/boot/efi", "/nix", "/ni
 
 /// Check if a partition has critical mount points
 fn has_critical_mount_point(mount_points: &[String]) -> bool {
-    mount_points.iter().any(|mp| CRITICAL_MOUNT_POINTS.contains(&mp.as_str()))
+    mount_points
+        .iter()
+        .any(|mp| CRITICAL_MOUNT_POINTS.contains(&mp.as_str()))
 }
 
 /// Check if a partition should be filtered out (critical mount points or swap)
@@ -23,15 +25,16 @@ fn should_filter_partition(partition: &Partition) -> bool {
     }
 
     // Filter out swap partitions
-    if let Some(ref fs_type) = partition.fs_type {
-        if fs_type == "swap" {
-            return true;
-        }
+    if let Some(ref fs_type) = partition.fs_type
+        && fs_type == "swap"
+    {
+        return true;
     }
 
     false
 }
 
+#[allow(dead_code)]
 pub struct ManageDiskDialog {
     window: adw::Window,
     content: gtk4::Box,
@@ -41,7 +44,11 @@ pub struct ManageDiskDialog {
 }
 
 impl ManageDiskDialog {
-    pub fn new(disk: &Disk, disks: Rc<RefCell<Vec<Disk>>>, on_save_callback: Option<Rc<dyn Fn()>>) -> Self {
+    pub fn new(
+        disk: &Disk,
+        disks: Rc<RefCell<Vec<Disk>>>,
+        on_save_callback: Option<Rc<dyn Fn()>>,
+    ) -> Self {
         // Create a proper window
         let window = adw::Window::builder()
             .modal(true)
@@ -53,7 +60,10 @@ impl ManageDiskDialog {
         let toolbar_view = adw::ToolbarView::new();
 
         let header = adw::HeaderBar::new();
-        header.set_title_widget(Some(&gtk4::Label::new(Some(&format!("Gérer {}", disk.path.display())))));
+        header.set_title_widget(Some(&gtk4::Label::new(Some(&format!(
+            "Gérer {}",
+            disk.path.display()
+        )))));
         toolbar_view.add_top_bar(&header);
 
         // Create scrollable content area with partitions
@@ -80,18 +90,22 @@ impl ManageDiskDialog {
         content.append(&info_label);
 
         // Partitions list (filter out critical partitions and swap)
-        let non_critical_partitions: Vec<_> = disk.partitions
+        let non_critical_partitions: Vec<_> = disk
+            .partitions
             .iter()
             .filter(|p| !should_filter_partition(p))
             .collect();
 
         if non_critical_partitions.is_empty() {
-            let no_parts = Label::new(Some("Aucune partition gérable\n(seules les partitions système sont présentes)"));
+            let no_parts = Label::new(Some(
+                "Aucune partition gérable\n(seules les partitions système sont présentes)",
+            ));
             no_parts.set_justify(gtk4::Justification::Center);
             content.append(&no_parts);
         } else {
             for partition in non_critical_partitions {
-                let part_box = Self::create_partition_row(partition, disks.clone(), on_save_callback.clone());
+                let part_box =
+                    Self::create_partition_row(partition, disks.clone(), on_save_callback.clone());
                 content.append(&part_box);
 
                 // Add separator between partitions
@@ -202,12 +216,17 @@ impl ManageDiskDialog {
             remove_btn.connect_clicked(move |btn| {
                 // Create confirmation dialog
                 let dialog = adw::MessageDialog::new(
-                    btn.root().and_then(|r| r.downcast::<gtk4::Window>().ok()).as_ref(),
+                    btn.root()
+                        .and_then(|r| r.downcast::<gtk4::Window>().ok())
+                        .as_ref(),
                     Some(&gettext("Confirm mount point removal")),
                     Some(&format!(
                         "{}\n\n{}",
-                        gettext("Do you really want to remove the mount point '%s'?").replace("%s", &mount_point_clone),
-                        gettext("This action will save the configuration and rebuild the NixOS system.")
+                        gettext("Do you really want to remove the mount point '%s'?")
+                            .replace("%s", &mount_point_clone),
+                        gettext(
+                            "This action will save the configuration and rebuild the NixOS system."
+                        )
                     )),
                 );
 
@@ -233,10 +252,17 @@ impl ManageDiskDialog {
                             for disk in disks_mut.iter_mut() {
                                 for part in disk.partitions.iter_mut() {
                                     if part.path == partition_path_for_confirm {
-                                        part.mount_points.retain(|mp| mp != &mount_point_for_confirm);
+                                        part.mount_points
+                                            .retain(|mp| mp != &mount_point_for_confirm);
                                         removed = true;
-                                        eprintln!("✓ Point de montage supprimé: {}", mount_point_for_confirm);
-                                        eprintln!("✓ Points de montage restants: {:?}", part.mount_points);
+                                        eprintln!(
+                                            "✓ Point de montage supprimé: {}",
+                                            mount_point_for_confirm
+                                        );
+                                        eprintln!(
+                                            "✓ Points de montage restants: {:?}",
+                                            part.mount_points
+                                        );
                                         break;
                                     }
                                 }
@@ -254,7 +280,10 @@ impl ManageDiskDialog {
                             }
 
                             // Close the manage dialog
-                            if let Some(window) = btn_for_confirm.root().and_then(|r| r.downcast::<gtk4::Window>().ok()) {
+                            if let Some(window) = btn_for_confirm
+                                .root()
+                                .and_then(|r| r.downcast::<gtk4::Window>().ok())
+                            {
                                 window.close();
                             }
                         }
@@ -300,7 +329,7 @@ impl ManageDiskDialog {
         let partition_path_for_add = partition.path.clone();
         let disks_for_add = disks.clone();
         let entry_clone = entry.clone();
-        let row_clone = row.clone();
+        let _row_clone = row.clone();
 
         let on_save_callback_clone = on_save_callback.clone();
         add_btn.connect_clicked(move |btn| {
@@ -321,13 +350,18 @@ impl ManageDiskDialog {
 
             // Create confirmation dialog using MessageDialog (libadwaita 0.7 compatible)
             let dialog = adw::MessageDialog::new(
-                btn.root().and_then(|r| r.downcast::<gtk4::Window>().ok()).as_ref(),
+                btn.root()
+                    .and_then(|r| r.downcast::<gtk4::Window>().ok())
+                    .as_ref(),
                 Some(&gettext("Confirm mount point addition")),
                 Some(&format!(
                     "{}\n\n{}",
                     // TRANSLATORS: %s is the mount point path (e.g., /media/data)
-                    gettext("Do you really want to add the mount point '%s'?").replace("%s", &mount_point),
-                    gettext("This action will save the configuration and rebuild the NixOS system.")
+                    gettext("Do you really want to add the mount point '%s'?")
+                        .replace("%s", &mount_point),
+                    gettext(
+                        "This action will save the configuration and rebuild the NixOS system."
+                    )
                 )),
             );
 
@@ -354,17 +388,31 @@ impl ManageDiskDialog {
                         eprintln!("📍 Nombre de disques dans RefCell: {}", disks_mut.len());
 
                         for (disk_idx, disk) in disks_mut.iter_mut().enumerate() {
-                            eprintln!("📍 Vérification disque {}: {}", disk_idx, disk.path.display());
+                            eprintln!(
+                                "📍 Vérification disque {}: {}",
+                                disk_idx,
+                                disk.path.display()
+                            );
                             for (part_idx, part) in disk.partitions.iter_mut().enumerate() {
-                                eprintln!("📍   Vérification partition {}: {}", part_idx, part.path.display());
+                                eprintln!(
+                                    "📍   Vérification partition {}: {}",
+                                    part_idx,
+                                    part.path.display()
+                                );
                                 if part.path == partition_path_for_confirm {
                                     eprintln!("📍   ✓ Partition trouvée!");
                                     if !part.mount_points.contains(&mount_point_for_confirm) {
                                         part.mount_points.push(mount_point_for_confirm.clone());
                                         entry_for_confirm.set_text("");
                                         added = true;
-                                        eprintln!("✓ Point de montage ajouté: {}", mount_point_for_confirm);
-                                        eprintln!("✓ Points de montage actuels: {:?}", part.mount_points);
+                                        eprintln!(
+                                            "✓ Point de montage ajouté: {}",
+                                            mount_point_for_confirm
+                                        );
+                                        eprintln!(
+                                            "✓ Points de montage actuels: {:?}",
+                                            part.mount_points
+                                        );
                                     } else {
                                         eprintln!("⚠ Point de montage déjà existant");
                                     }
@@ -377,7 +425,9 @@ impl ManageDiskDialog {
                         }
 
                         if !added {
-                            eprintln!("❌ ERREUR: Partition non trouvée dans la liste des disques!");
+                            eprintln!(
+                                "❌ ERREUR: Partition non trouvée dans la liste des disques!"
+                            );
                         }
                     }
 
@@ -389,7 +439,10 @@ impl ManageDiskDialog {
                         }
 
                         // Close the manage dialog
-                        if let Some(window) = btn_for_confirm.root().and_then(|r| r.downcast::<gtk4::Window>().ok()) {
+                        if let Some(window) = btn_for_confirm
+                            .root()
+                            .and_then(|r| r.downcast::<gtk4::Window>().ok())
+                        {
                             window.close();
                         }
                     }
@@ -417,10 +470,10 @@ impl ManageDiskDialog {
     }
 
     pub fn present(&self, parent: Option<&impl IsA<gtk4::Widget>>) {
-        if let Some(p) = parent {
-            if let Some(window) = p.dynamic_cast_ref::<gtk4::Window>() {
-                self.window.set_transient_for(Some(window));
-            }
+        if let Some(p) = parent
+            && let Some(window) = p.dynamic_cast_ref::<gtk4::Window>()
+        {
+            self.window.set_transient_for(Some(window));
         }
         self.window.present();
     }
