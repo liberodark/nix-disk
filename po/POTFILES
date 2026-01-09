@@ -1,0 +1,8 @@
+src/main.rs
+src/ui/app.rs
+src/ui/window.rs
+src/ui/widgets/disks.rs
+src/ui/dialogs/manage_disk.rs
+src/ui/dialogs/format_disk.rs
+src/ui/dialogs/welcome.rs
+src/ui/dialogs/missing_partitions.rs

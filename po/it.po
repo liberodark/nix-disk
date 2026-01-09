@@ -1,0 +1,121 @@
+# Italian translations for nix-disk-manager package.
+# Copyright (C) 2025 THE nix-disk-manager'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the nix-disk-manager package.
+# Automatically generated, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nix-disk-manager\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-09 16:04+0200\n"
+"PO-Revision-Date: 2025-11-21 12:00+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: data/ui/window.blp:16
+msgid "Please wait while your system is being rebuilt..."
+msgstr "Attendere prego mentre il sistema viene ricostruito..."
+
+#: data/ui/window.blp:21
+msgid ""
+"An error happened while rebuilding your system. Be aware and check your nix "
+"configuration !"
+msgstr ""
+"Si è verificato un errore durante la ricostruzione del sistema. Attenzione, "
+"controlla la tua configurazione Nix!"
+
+#: data/ui/disk.blp:22
+msgid "Manage"
+msgstr "Gestisci"
+
+#: data/ui/disks.blp:23
+msgid "Save configuration"
+msgstr "Salva configurazione"
+
+#: data/ui/save_dialog.blp:5
+msgid ""
+"You made some configuration changes which need to be saved. Are you sure you "
+"want to exit the app ?"
+msgstr ""
+"Hai apportato alcune modifiche alla configurazione che devono essere salvate. "
+"Sei sicuro di voler uscire dall'applicazione?"
+
+#: data/ui/save_dialog.blp:7
+msgid "Stay"
+msgstr "Rimani"
+
+#: data/ui/save_dialog.blp:8
+msgid "Exit"
+msgstr "Esci"
+
+#: data/ui/manage_disk_add_mount_row.blp:5
+msgid "Mount point path"
+msgstr "Percorso del punto di montaggio"
+
+#: data/ui/manage_disk.blp:22
+msgid "Mount points"
+msgstr "Punti di montaggio"
+
+#: data/ui/welcome_dialog.blp:30
+msgid "Welcome on Nix Disk Manager."
+msgstr "Benvenuto in Nix Disk Manager."
+
+#: data/ui/welcome_dialog.blp:36
+msgid ""
+"This tool is here to only help you mount your disks for the moment.\n"
+"More features will be available in the future !"
+msgstr ""
+"Questo strumento è presente solo per aiutarti a montare i tuoi dischi per il momento.\n"
+"Più funzionalità saranno disponibili in futuro!"
+
+#: data/ui/welcome_dialog.blp:45
+msgid "Let's start !"
+msgstr "Iniziamo!"
+
+#: nixdiskmanager/dialogs/manage_disk.py:21
+msgid "No mount points were detected"
+msgstr "Nessun punto di montaggio rilevato"
+
+#: src/ui/dialogs/manage_disk.rs:251
+msgid "Confirm mount point addition"
+msgstr "Conferma aggiunta punto di montaggio"
+
+#: src/ui/dialogs/manage_disk.rs:255
+msgid "Do you really want to add the mount point '%s'?"
+msgstr "Vuoi davvero aggiungere il punto di montaggio '%s'?"
+
+#: src/ui/dialogs/manage_disk.rs:256
+msgid "This action will save the configuration and rebuild the NixOS system."
+msgstr "Questa azione salverà la configurazione e ricostruirà il sistema NixOS."
+
+#: src/ui/dialogs/manage_disk.rs:260
+msgid "Cancel"
+msgstr "Annulla"
+
+#: src/ui/dialogs/manage_disk.rs:261
+msgid "Confirm"
+msgstr "Conferma"
+
+#~ msgid "Be ready to manage your disks like a pro !"
+#~ msgstr "Preparati a gestire i tuoi dischi come un professionista!"
+
+#: src/ui/window.rs:53
+msgid "Rebuilding NixOS configuration..."
+msgstr "Ricostruzione della configurazione NixOS in corso..."
+
+#: src/ui/window.rs:56
+msgid "Failed to rebuild NixOS configuration"
+msgstr "Ricostruzione della configurazione NixOS fallita"
+
+#: src/ui/dialogs/manage_disk.rs:206
+msgid "Confirm mount point removal"
+msgstr "Conferma rimozione punto di montaggio"
+
+#: src/ui/dialogs/manage_disk.rs:209
+msgid "Do you really want to remove the mount point '%s'?"
+msgstr "Vuoi davvero rimuovere il punto di montaggio '%s'?"

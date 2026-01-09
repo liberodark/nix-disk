@@ -1,0 +1,28 @@
+# Rust build artifacts
+/target/
+
+# Nix build results
+result
+result-*
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# User-specific Claude Code configuration
+.claude/
+
+# Build system artifacts
+*.o
+*.so
+*.a
+.deps/
+.libs/
+
+# Generated files
+compile_commands.json
+claude.md
